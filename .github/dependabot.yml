@@ -10,6 +10,8 @@ updates:
     commit-message:
       prefix: 'build(dependencies)'
       prefix-development: 'build(dev-dependencies)'
+    ignore:
+      - dependency-name: '@types/k6'
     groups:
       prod-dependencies-minor-and-patch:
         dependency-type: 'production'
