@@ -7,6 +7,7 @@ import { getConfig, envValidation } from 'lib/config'
 import { ExampleModule } from 'modules/example'
 import { HealthCheckModule } from 'modules/health-check'
 import { AppService } from './app.service'
+import { AuthModule } from 'modules/auth'
 
 @Module({
     imports: [
@@ -31,6 +32,7 @@ import { AppService } from './app.service'
         }),
         HealthCheckModule,
         ExampleModule,
+        AuthModule,
     ],
     providers: [AppService],
 })
