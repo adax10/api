@@ -30,7 +30,7 @@ jobs:
           node-version-file: '.nvmrc'
 
       - name: Check if node modules are cached
-        uses: actions/cache@v4.2.2
+        uses: actions/cache@v4.2.3
         with:
           path: ./node_modules
           key: ${{ env.CACHE_KEY }}-node-modules-${{ hashFiles('**/yarn.lock') }}
