@@ -33,17 +33,19 @@ $ yarn test:cov
 
 ## Migrations
 
-Make sure to use npm for commands follow, because yarn does not support $npm_config_name.
+### Generate migration
 
-```
-# generate migration
-npm run migration:generate --name=ExampleMigration
-
-# create migration
-npm run migration:create --name=ExampleMigration
+```bash
+$ yarn migration:generate './src/database/migrations/[your_migration_name]'
 ```
 
-Migration files are placed under src/database/migrations.
+### Create migration
+
+```bash
+$ yarn migration:create './src/database/migrations/[your_migration_name]'
+```
+
+Then you get migration file inside `src/database/migrations` folder.
 
 ## Env configuration
 

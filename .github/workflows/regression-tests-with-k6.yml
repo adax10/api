@@ -43,7 +43,6 @@ env:
     inputs.environment == 'production' && '' ||
     'http://localhost:3000' }}
   K6_VERSION: '0.57.0'
-  CACHE_KEY: 'k6-tests'
   VIRTUAL_USERS_NUMBER: ${{ inputs['virtual-users-number'] || 1 }}
   ITERATIONS: ${{ inputs.iterations || 1 }}
   ENVIRONMENT: ${{ inputs.environment || 'local' }}
@@ -52,6 +51,7 @@ env:
 jobs:
   k6-tests:
     name: Regression tests
+    if: ${{ !github.event.pull_request.draft }}
     timeout-minutes: 10
     runs-on: ubuntu-latest
     permissions:
