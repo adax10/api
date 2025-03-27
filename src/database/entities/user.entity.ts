@@ -14,6 +14,9 @@ export class UserEntity {
     @Column()
     email: string
 
+    @Column()
+    userTypeUUID: string
+
     @Index()
     @Column({
         select: false,

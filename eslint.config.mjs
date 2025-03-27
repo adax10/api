@@ -83,7 +83,12 @@ export default [
             'prefer-template': 'error',
             'no-underscore-dangle': 'warn',
             'no-unused-expressions': 'off',
-            camelcase: 'warn',
+            camelcase: [
+                'warn',
+                {
+                    allow: ['en_US'],
+                },
+            ],
             'arrow-body-style': ['error', 'as-needed'],
             'constructor-super': 'error',
             curly: 'error',

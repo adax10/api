@@ -68,4 +68,16 @@ export class EnvironmentVariables {
     @Type(() => String)
     @IsBooleanString()
     readonly TYPEORM_DEBUG: string = 'false'
+
+    @IsString()
+    readonly JWT_TOKEN_PRIVATE_KEY: string
+
+    @IsString()
+    readonly JWT_TOKEN_PUBLIC_KEY: string
+
+    @IsString()
+    readonly AUTH_COOKIE_NAME: string = 'auth-token'
+
+    @IsString()
+    readonly AUTH_QUERY_PARAM_NAME: string = 'auth-token'
 }
