@@ -1,7 +1,3 @@
-## NestJS starter with TypeORM (0.3), database MariaDB and i18n
-
-For i18n add the appropriate header: `Accept-Language: en | pl`
-
 ## Installation
 
 ```bash

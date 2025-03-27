@@ -3,6 +3,7 @@ import { typeORMConfig } from 'database'
 import { EnvironmentVariables } from './environment.variables'
 import { basicConfig } from './basic-config'
 import { healthCheckConfig } from './health-check.config'
+import { authConfig } from './auth.config'
 
 export const getConfig = () => {
     const configEnvs = plainToInstance(EnvironmentVariables, process.env, {
@@ -13,5 +14,6 @@ export const getConfig = () => {
         basicConfig: basicConfig(configEnvs),
         healthCheckConfig: healthCheckConfig(configEnvs),
         typeORMConfig: typeORMConfig(configEnvs),
+        authConfig: authConfig(configEnvs),
     }
 }

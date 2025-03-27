@@ -1,5 +1,5 @@
 import { Controller, Get } from '@nestjs/common'
-import { HealthCheck, HealthCheckResult, HealthCheckService } from '@nestjs/terminus'
+import { HealthCheck, HealthCheckResult, HealthCheckService, TypeOrmHealthIndicator } from '@nestjs/terminus'
 import { format } from 'date-fns'
 import { Public } from 'lib/decorators'
 import { R } from 'lib/utils'
@@ -11,7 +11,10 @@ export class HealthCheckController {
     private readonly build: string = getConfig().healthCheckConfig.build
     private readonly date: string
 
-    constructor(private health: HealthCheckService) {
+    constructor(
+        private readonly health: HealthCheckService,
+        private readonly db: TypeOrmHealthIndicator,
+    ) {
         const lastPart = R.last(this.build.split('-'))
         const timestamp = this.build !== 'unknown' && !R.isNil(lastPart) ? parseInt(lastPart, 10) * 1000 : null
 
@@ -30,6 +33,7 @@ export class HealthCheckController {
                     date: this.date,
                 },
             }),
+            () => this.db.pingCheck('database'),
         ])
     }
 }

@@ -5,6 +5,7 @@ import { NestFactory } from '@nestjs/core'
 import { Request } from 'express'
 import helmet from 'helmet'
 import { json } from 'body-parser'
+import cookieParser from 'cookie-parser'
 import morgan from 'morgan'
 import 'lib/logger'
 import { splitCorsOrigin, getConfig } from 'lib/config'
@@ -26,6 +27,7 @@ const bootstrap = async () => {
             hidePoweredBy: true,
         }),
     )
+    app.use(cookieParser())
     app.enableCors({
         origin: splitCorsOrigin(origin),
         methods,

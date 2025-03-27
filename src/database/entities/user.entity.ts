@@ -3,7 +3,7 @@ import { UserRefreshTokenEntity } from './user-refresh-token.entity'
 import { UserTypeEntity } from './user-type.entity'
 
 @Entity({ name: 'user' })
-@Unique(['email'])
+@Unique(['email', 'userTypeUUID'])
 export class UserEntity {
     @PrimaryGeneratedColumn('uuid')
     userUUID: string
@@ -13,6 +13,9 @@ export class UserEntity {
 
     @Column()
     email: string
+
+    @Column()
+    userTypeUUID: string
 
     @Index()
     @Column({

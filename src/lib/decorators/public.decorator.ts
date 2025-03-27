@@ -1,4 +1,4 @@
 import { SetMetadata } from '@nestjs/common'
-import { DecoratorsName } from './decorators-name'
+import { DecoratorName } from 'lib/enums'
 
-export const Public = (isPublic: boolean = true) => SetMetadata(DecoratorsName.Public, isPublic)
+export const Public = (isPublic: boolean = true) => SetMetadata(DecoratorName.Public, isPublic)
