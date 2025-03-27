@@ -1,0 +1,16 @@
+export enum DBTypes {
+    VarChar = 'varchar',
+    Text = 'text',
+    Enum = 'enum',
+    Geometry = 'geometry',
+    MediumText = 'mediumtext',
+    BigInt = 'bigint',
+    TinyInt = 'tinyint',
+    Int = 'int',
+    Decimal = 'decimal',
+    UUID = 'uuid',
+    Float = 'float',
+    JSON = 'json',
+    Boolean = 'boolean',
+    DateTime = 'datetime',
+}

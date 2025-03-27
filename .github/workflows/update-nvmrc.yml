@@ -1,0 +1,76 @@
+name: Update .nvmrc to latest LTS version
+
+on:
+  schedule:
+    - cron: '0 12 1 * *'
+
+  workflow_dispatch:
+
+jobs:
+  update-nvmrc:
+    name: Update .nvmrc file
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+
+      - name: Fetch latest Node.js LTS version
+        id: node-version
+        run: |
+          NODE_VERSION=$(curl -s https://nodejs.org/dist/index.json | jq -r '[.[] | select(.lts != false)][0].version')
+          echo "node_version=${NODE_VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Update .nvmrc
+        run: echo "${{ steps.node-version.outputs.node_version }}" > .nvmrc
+
+      - name: Prepare branch name
+        id: branch-name
+        run: |
+          BRANCH_NAME="update-nvmrc-${{ steps.node_version.outputs.latest_lts }}"
+          echo "branch_name=${BRANCH_NAME}" >>$GITHUB_OUTPUT
+
+      - name: Check if branch already exists
+        id: check-branch
+        shell: bash
+        run: |
+          if git ls-remote --exit-code --heads origin "${{ steps.branch-name.outputs.branch_name }}"; then
+            echo "Branch ${{ steps.branch-name.outputs.branch_name }} already exists. Skipping branch creation."
+            echo "branch_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "branch_exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push changes
+        id: commit-changes
+        if: ${{ steps.check-branch.outputs.branch_exists == 'false' }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b ${{ steps.branch-name.outputs.branch_name }}
+
+          if ! git diff --exit-code .nvmrc; then
+            echo "nvmrc_changed=true" >> $GITHUB_OUTPUT
+            git add .nvmrc
+            git commit -m "build(node): update .nvmrc to Node.js ${{ steps.node-version.outputs.latest_lts }}"
+            git push --set-upstream https://github-actions:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} $BRANCH_NAME
+          else
+            echo "nvmrc_changed=false" >> $GITHUB_OUTPUT
+            echo "No changes detected in .nvmrc. Skipping commit and push."
+          fi
+
+      - name: Create Pull Request
+        if: ${{ steps.commit-changes.outputs.nvmrc_changed == 'true' }}
+        run: |
+          gh pr create \
+            -B main \
+            -H ${{ steps.branch-name.outputs.branch_name }} \
+            --title "build(node): update .nvmrc to Node.js ${{ steps.node-version.outputs.latest_lts  }}" \
+            --body "This PR updates the .nvmrc file to the latest Node.js LTS version: **${{ steps.node-version.outputs.LATEST_LTS  }}**." \
+            --label "dependencies"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

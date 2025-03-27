@@ -1,0 +1,145 @@
+name: Regression tests with K6
+run-name: Regression tests on ${{ inputs.environment || 'local' }} environment
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+      - main
+
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        description: 'Environment'
+        required: true
+        default: 'development'
+        options:
+          - 'local'
+          - 'development'
+          - 'staging'
+          - 'production'
+      virtual-users-number:
+        description: 'The number of virtual users (VUs) that will run concurrently during the test.'
+        required: true
+        default: '1'
+      iterations:
+        description: 'The number of iterations each virtual user will perform.'
+        required: true
+        default: '1'
+      use_info_logs:
+        type: boolean
+        required: false
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  GH_PAT: ${{ secrets.GITHUB_TOKEN }}
+  REQUEST_API_URL: ${{
+    inputs.environment == 'development' && '' ||
+    inputs.environment == 'production' && '' ||
+    'http://localhost:3000' }}
+  K6_VERSION: '0.57.0'
+  CACHE_KEY: 'k6-tests'
+  VIRTUAL_USERS_NUMBER: ${{ inputs['virtual-users-number'] || 1 }}
+  ITERATIONS: ${{ inputs.iterations || 1 }}
+  ENVIRONMENT: ${{ inputs.environment || 'local' }}
+  USE_INFO_LOGS: ${{ inputs.use_info_logs || 'false' }}
+
+jobs:
+  k6-tests:
+    name: Regression tests
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Use Node.js
+        if: ${{ env.ENVIRONMENT == 'local' }}
+        uses: actions/setup-node@v4.3.0
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Install dependencies
+        if: ${{ env.ENVIRONMENT == 'local' }}
+        run: yarn install --frozen-lockfile
+
+      - name: Export .nvmrc to node version
+        if: ${{ env.ENVIRONMENT == 'local' }}
+        id: node-version
+        run: echo "version=$(cat .nvmrc | sed 's/v//')" >> $GITHUB_OUTPUT
+
+      - name: Use Docker Compose
+        if: ${{ env.ENVIRONMENT == 'local' }}
+        env:
+          NODE_VERSION: ${{ steps.node-version.outputs.version }}
+        run: docker compose -f test-k6/docker-compose-tests-k6.yaml --env-file test-k6/.env.tests-k6 up -d
+
+      - name: Wait for api container
+        if: ${{ env.ENVIRONMENT == 'local' }}
+        run: docker exec api-starter /bin/sh -c "yarn wait-on -v tcp:0.0.0.0:3000"
+
+      - name: Set date for artifact name
+        id: set-date
+        run: |
+          DATE=$(date +'%Y-%m-%d-%H-%M-%S')
+          TEST_REPORT_FOLDER="test-k6/test-report/$DATE"
+          mkdir -p "$TEST_REPORT_FOLDER"
+          echo "DATE=$DATE" >> $GITHUB_OUTPUT
+          echo "TEST_REPORT_FOLDER=$TEST_REPORT_FOLDER" >> $GITHUB_OUTPUT
+
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1.1.0
+        with:
+          k6-version: ${{ env.K6_VERSION }}
+
+      - name: Run k6 tests
+        id: k6-tests
+        run: |
+          K6_WEB_DASHBOARD=true \
+          K6_WEB_DASHBOARD_EXPORT=${{ steps.set-date.outputs.TEST_REPORT_FOLDER }}/web-dashboard.html \
+          k6 run test-k6/setup.ts \
+            -e VIRTUAL_USERS_NUMBER=${{ env.VIRTUAL_USERS_NUMBER }} \
+            -e ITERATIONS=${{ env.ITERATIONS }} \
+            -e REQUEST_API_URL=${{ env.REQUEST_API_URL }} \
+            -e USE_INFO_LOGS=${{ env.USE_INFO_LOGS }} \
+            --summary-export=${{ steps.set-date.outputs.TEST_REPORT_FOLDER }}/summary.json
+
+      - name: Compose Down
+        if: ${{ always() && env.ENVIRONMENT == 'local' }}
+        env:
+          NODE_VERSION: ${{ steps.node-version.outputs.version }}
+        run: docker compose -f test-k6/docker-compose-tests-k6.yaml --env-file test-k6/.env.tests-k6 down
+
+      - name: Prepare PR message
+        if: ${{ always() && github.event_name == 'pull_request' }}
+        id: pr_message
+        run: |
+          if [ "${{ steps.k6-tests.outcome }}" == "success" ]; then
+            echo "message=## ✅ All k6 tests passed! Everything looks good 🎉" >> $GITHUB_OUTPUT
+          else
+            echo "message=## ❌ K6 tests failed. Please check the [workflow results here](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) 👀" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set PR comments
+        if: always() && github.event_name == 'pull_request' && !cancelled()
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body "${{ steps.pr_message.outputs.message }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artifact
+        if: always() && !cancelled()
+        uses: actions/upload-artifact@v4.6.1
+        with:
+          name: test-k6-${{ steps.set-date.outputs.DATE }}
+          path: ${{ steps.set-date.outputs.TEST_REPORT_FOLDER }}
+          retention-days: 14

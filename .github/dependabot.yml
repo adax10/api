@@ -1,0 +1,40 @@
+version: 2
+
+updates:
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'monthly'
+      time: '03:00'
+      timezone: 'Europe/Warsaw'
+    commit-message:
+      prefix: 'build(dependencies)'
+      prefix-development: 'build(dev-dependencies)'
+    groups:
+      prod-dependencies-minor-and-patch:
+        dependency-type: 'production'
+        update-types:
+          - 'minor'
+          - 'patch'
+      dev-dependencies-minor-and-patch:
+        dependency-type: 'development'
+        update-types:
+          - 'minor'
+          - 'patch'
+      prod-dependencies-major:
+        dependency-type: 'production'
+        update-types:
+          - 'major'
+      dev-dependencies-major:
+        dependency-type: 'development'
+        update-types:
+          - 'major'
+
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'monthly'
+      time: '03:00'
+      timezone: 'Europe/Warsaw'
+    commit-message:
+      prefix: 'build(github-actions)'

@@ -1,0 +1,44 @@
+name: Build Docker Image
+
+on:
+  push:
+    branches: main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.10.0
+
+      - name: Prepare docker tag
+        id: docker-tag
+        run: |
+          service_name=${{ github.event.repository.name }}
+          service_version=main-${GITHUB_SHA:0:7}-$(date +%s)
+
+          echo "service_version=$service_version" >> $GITHUB_OUTPUT
+          echo "service_name=$service_name" >> $GITHUB_OUTPUT
+
+      - name: Export .nvmrc to node version
+        id: node-version
+        run: echo "version=$(cat .nvmrc | sed 's/v//')" >> $GITHUB_OUTPUT
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6.15.0
+        with:
+          context: .
+          push: false
+          file: Dockerfile
+          build-args: |
+            NODE_VERSION=${{ steps.node-version.outputs.version }}
+            SERVICE_VERSION=${{ steps.docker-tag.outputs.service_version }}
+            SERVICE_NAME=${{ steps.docker-tag.outputs.service_name }}

@@ -1,0 +1,28 @@
+services:
+  api:
+    container_name: api-starter
+    env_file:
+      - ./.env.tests-k6
+    ports:
+      - 3000:3000
+    image: node:${NODE_VERSION}-alpine
+    volumes:
+      - ./../:/app
+    working_dir: /app
+    depends_on:
+      - db
+    command: sh -c "yarn start"
+
+  db:
+    container_name: sql-container
+    image: mariadb:latest
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    ports:
+      - ${TYPEORM_PORT}:${TYPEORM_PORT}
+    environment:
+      MYSQL_TCP_PORT: ${TYPEORM_PORT}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${TYPEORM_DATABASE}
+      MARIADB_USER: ${TYPEORM_USERNAME}
+      MARIADB_PASSWORD: ${TYPEORM_PASSWORD}
