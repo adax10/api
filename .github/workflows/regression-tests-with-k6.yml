@@ -138,7 +138,7 @@ jobs:
 
       - name: Upload artifact
         if: always() && !cancelled()
-        uses: actions/upload-artifact@v4.6.1
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: test-k6-${{ steps.set-date.outputs.DATE }}
           path: ${{ steps.set-date.outputs.TEST_REPORT_FOLDER }}
