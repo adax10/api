@@ -81,6 +81,7 @@ jobs:
         if: ${{ env.ENVIRONMENT == 'local' }}
         env:
           NODE_VERSION: ${{ steps.node-version.outputs.version }}
+          JWT_TOKEN_PRIVATE_KEY: ${{ secrets.JWT_TOKEN_PRIVATE_KEY }}
         run: docker compose -f test-k6/docker-compose-tests-k6.yaml --env-file test-k6/.env.tests-k6 up -d
 
       - name: Wait for api container
@@ -117,6 +118,7 @@ jobs:
         if: ${{ always() && env.ENVIRONMENT == 'local' }}
         env:
           NODE_VERSION: ${{ steps.node-version.outputs.version }}
+          JWT_TOKEN_PRIVATE_KEY: ${{ secrets.JWT_TOKEN_PRIVATE_KEY }}
         run: docker compose -f test-k6/docker-compose-tests-k6.yaml --env-file test-k6/.env.tests-k6 down
 
       - name: Prepare PR message
