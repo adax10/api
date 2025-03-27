@@ -3,6 +3,7 @@ import { UserType } from 'lib/enums'
 
 export enum AuthStrategy {
     JWT = 'jwt',
+    Local = 'local',
 }
 
 export interface TokenPayload extends JwtPayload {
@@ -12,4 +13,9 @@ export interface TokenPayload extends JwtPayload {
         [key: string]: any
         userType: UserType
     }
+}
+
+export enum TokenTypes {
+    AccessToken = 'access-token',
+    RefreshToken = 'refresh-token',
 }

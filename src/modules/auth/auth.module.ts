@@ -3,17 +3,17 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import { JwtModule } from '@nestjs/jwt'
 import { PassportModule } from '@nestjs/passport'
 import { APP_GUARD } from '@nestjs/core'
-import { UserEntity, UserTypeEntity } from 'database/entities'
+import { UserEntity, UserRefreshTokenEntity, UserTypeEntity } from 'database/entities'
 import { getConfig } from 'lib/config'
 import { AuthService } from './auth.service'
 import { AuthController } from './auth.controller'
 import { GlobalAuthGuard } from './guards'
-import { JwtStrategy } from './strategies'
+import { JwtStrategy, LocalStrategy } from './strategies'
 import { AuthStrategy } from './types'
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([UserEntity, UserTypeEntity]),
+        TypeOrmModule.forFeature([UserEntity, UserTypeEntity, UserRefreshTokenEntity]),
         PassportModule.register({
             defaultStrategy: AuthStrategy.JWT,
         }),
@@ -39,6 +39,7 @@ import { AuthStrategy } from './types'
         },
         AuthService,
         JwtStrategy,
+        LocalStrategy,
     ],
 })
 export class AuthModule {}

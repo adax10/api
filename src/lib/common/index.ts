@@ -1,2 +1,2 @@
 export { HttpMethods } from './http-methods'
-export { ErrorResponse } from './errors'
+export { ErrorResponse, InternalErrorCode } from './errors'
