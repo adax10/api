@@ -3,7 +3,7 @@ import { UserType } from 'lib/enums'
 
 export enum AuthStrategy {
     JWT = 'jwt',
-    Local = 'local',
+    Email = 'email',
 }
 
 export interface TokenPayload extends JwtPayload {
