@@ -3,7 +3,7 @@ import { IsJWT } from 'class-validator'
 
 export class ConfirmRegisterDto {
     @ApiProperty({
-        description: 'JWT token sent via email for confirming user registration',
+        description: 'JWT token sent via email for confirming user registration.',
     })
     @IsJWT()
     readonly token: string

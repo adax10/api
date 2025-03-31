@@ -7,7 +7,7 @@ import { UserEntity, UserRefreshTokenEntity, UserTypeEntity } from 'database/ent
 import { TimeIntervalS, UserType } from 'lib/enums'
 import { en_US } from 'lib/locale'
 import { R } from 'lib/utils'
-import { ConfirmRegisterDto, EmailLoginDto, ForgotPasswordDto, RefreshTokenDto, RegisterDto } from './dto'
+import { ConfirmRegisterDto, EmailLoginDto, ForgotPasswordDto, RefreshTokenDto, RegisterDto, ResetPasswordDto } from './dto'
 import { ErrorResponse } from 'lib/common'
 import { TokenPayload, TokenTypes, UserTokenPayload, UserToSave } from './types'
 import { hashPassword } from './utils'
@@ -224,6 +224,25 @@ export class AuthService {
         const token = this.jwtService.sign(tokenPayload, tokenOptions)
 
         return token
+    }
+
+    async resetPassword(dto: ResetPasswordDto) {
+        const { token, password } = dto
+
+        const data = await this.jwtService.verifyAsync<UserTokenPayload>(token).catch(() => {
+            const error: ErrorResponse = {
+                code: HttpStatus.BAD_REQUEST,
+                message: T.expiredToken,
+            }
+
+            throw new BadRequestException(error)
+        })
+
+        await this.userRepository.update({ userUUID: data.userUUID, isActive: true }, { password: hashPassword(password) })
+
+        return {
+            message: T.passwordChanged,
+        }
     }
 
     // note: it should be done by sending email with jwt token

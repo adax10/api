@@ -7,8 +7,15 @@ import { User } from 'lib/types'
 import { getConfig } from 'lib/config'
 import { AuthService } from './auth.service'
 import { AUTH } from './constants'
-import { ConfirmRegisterDto, EmailLoginDto, ForgotPasswordDto, RefreshTokenDto, RegisterDto } from './dto'
-import { ConfirmRegisterResponse, ForgotPassowordResponse, LoginResponse, RefreshTokenResponse, RegisterResponse } from './responses'
+import { ConfirmRegisterDto, EmailLoginDto, ForgotPasswordDto, RefreshTokenDto, RegisterDto, ResetPasswordDto } from './dto'
+import {
+    ConfirmRegisterResponse,
+    ForgotPassowordResponse,
+    LoginResponse,
+    RefreshTokenResponse,
+    RegisterResponse,
+    ResetPasswordResponse,
+} from './responses'
 import { AuthStrategy } from './types'
 
 @Controller(AUTH)
@@ -76,5 +83,11 @@ export class AuthController {
         return {
             token,
         }
+    }
+
+    @Public()
+    @Post('reset-password')
+    resetPassword(@Body() dto: ResetPasswordDto): Promise<ResetPasswordResponse> {
+        return this.authService.resetPassword(dto)
     }
 }
