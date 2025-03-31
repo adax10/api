@@ -5,9 +5,9 @@ import { Repository } from 'typeorm'
 import { UserEntity, UserRefreshTokenEntity, UserTypeEntity } from 'database/entities'
 import { TimeIntervalS, UserType } from 'lib/enums'
 import { en_US } from 'lib/locale'
-import { EmailLoginDto, RegisterDto } from './dto'
+import { ConfirmRegisterDto, EmailLoginDto, RegisterDto } from './dto'
 import { ErrorResponse } from 'lib/common'
-import { TokenTypes, UserToSave } from './types'
+import { TokenTypes, UserTokenPayload, UserToSave } from './types'
 import { hashPassword } from './utils'
 import { User } from 'lib/types'
 import { GetUserDao } from './dao'
@@ -38,9 +38,38 @@ export class AuthService {
             ...userData,
         })
 
+        const token = this.getRegisterToken(userUUID)
+
         return {
             userUUID,
             email,
+            token,
+        }
+    }
+
+    async confirmRegister(dto: ConfirmRegisterDto) {
+        const { token } = dto
+
+        const data = await this.jwtService.verifyAsync<UserTokenPayload>(token).catch(() => {
+            const error: ErrorResponse = {
+                code: HttpStatus.BAD_REQUEST,
+                message: T.expiredToken,
+            }
+
+            throw new BadRequestException(error)
+        })
+
+        await this.userRepository.update(
+            {
+                userUUID: data.userUUID,
+            },
+            {
+                isActive: true,
+            },
+        )
+
+        return {
+            message: T.accountConfirm,
         }
     }
 
@@ -93,6 +122,13 @@ export class AuthService {
         }
     }
 
+    removeTokens(userUUID: string, deviceId: string) {
+        return this.userRefreshTokenRepository.delete({
+            userUUID,
+            deviceId,
+        })
+    }
+
     getLoggedUser(userUUID: string, userType: UserType) {
         return this.userRepository
             .findOneOrFail({
@@ -110,6 +146,20 @@ export class AuthService {
             .catch(() => {
                 throw new UnauthorizedException()
             })
+    }
+
+    // note: it should be done by sending email with jwt token
+    private getRegisterToken(userUUID: string) {
+        const payload = {
+            userUUID,
+        }
+        const options = {
+            expiresIn: TimeIntervalS.Day,
+        }
+
+        const jwtToken = this.jwtService.sign(payload, options)
+
+        return jwtToken
     }
 
     private getAccessToken(user: User) {
@@ -169,7 +219,6 @@ export class AuthService {
         return this.userRepository.save({
             ...userData,
             password: hashPassword(password),
-            isActive: true,
         })
     }
 
