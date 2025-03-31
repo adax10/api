@@ -143,9 +143,9 @@ export class AuthService {
     }
 
     async refreshToken(dto: RefreshTokenDto, deviceId: string) {
-        const { refreshToken } = dto
+        const { token } = dto
 
-        const tokenPayload = await this.jwtService.verifyAsync<TokenPayload>(refreshToken).catch(() => {
+        const tokenPayload = await this.jwtService.verifyAsync<TokenPayload>(token).catch(() => {
             const error: ErrorResponse = {
                 code: HttpStatus.BAD_REQUEST,
                 message: T.invalidTokenUsed,
