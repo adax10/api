@@ -1,9 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { IsJWT } from 'class-validator'
 
-export class ConfirmRegisterDto {
+export class RefreshTokenDto {
     @ApiProperty({
-        description: 'JWT token sent via email for confirming user registration',
+        description: 'The refresh token received from successful login.',
     })
     @IsJWT()
     readonly token: string
