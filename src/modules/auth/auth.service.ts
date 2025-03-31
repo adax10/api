@@ -93,6 +93,13 @@ export class AuthService {
         }
     }
 
+    removeTokens(userUUID: string, deviceId: string) {
+        return this.userRefreshTokenRepository.delete({
+            userUUID,
+            deviceId,
+        })
+    }
+
     getLoggedUser(userUUID: string, userType: UserType) {
         return this.userRepository
             .findOneOrFail({
@@ -169,7 +176,6 @@ export class AuthService {
         return this.userRepository.save({
             ...userData,
             password: hashPassword(password),
-            isActive: true,
         })
     }
 

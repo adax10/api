@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards, Res } from '@nestjs/common'
+import { Body, Controller, Post, UseGuards, Res, HttpCode, HttpStatus } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { Response } from 'express'
 import { DeviceIdDecorator, Public, UserDecorator } from 'lib/decorators'
@@ -37,5 +37,13 @@ export class AuthController {
             accessToken,
             refreshToken,
         }
+    }
+
+    @Post('logout')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    logout(@UserDecorator() user: User, @DeviceIdDecorator() deviceId: string, @Res({ passthrough: true }) res: Response) {
+        res.cookie(getConfig().authConfig.cookieName, '', { secure: true })
+
+        return this.authService.removeTokens(user.userUUID, deviceId)
     }
 }
