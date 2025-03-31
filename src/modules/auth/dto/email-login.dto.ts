@@ -1,7 +1,7 @@
 import { IsEmail, IsStrongPassword } from 'class-validator'
 import { passwordRules } from 'lib/utils'
 
-export class MailLoginDto {
+export class EmailLoginDto {
     @IsEmail()
     readonly email: string
 

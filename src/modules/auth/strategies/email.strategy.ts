@@ -5,7 +5,7 @@ import { AuthStrategy } from '../types'
 import { AuthService } from '../auth.service'
 
 @Injectable()
-export class LocalStrategy extends PassportStrategy(Strategy, AuthStrategy.Local) {
+export class EmailStrategy extends PassportStrategy(Strategy, AuthStrategy.Email) {
     constructor(private readonly authService: AuthService) {
         super({
             passReqToCallback: false,
@@ -14,7 +14,7 @@ export class LocalStrategy extends PassportStrategy(Strategy, AuthStrategy.Local
     }
 
     validate(email: string, password: string) {
-        return this.authService.loginWithMail({
+        return this.authService.loginWithEmail({
             email,
             password,
         })

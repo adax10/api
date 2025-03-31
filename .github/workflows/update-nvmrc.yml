@@ -23,7 +23,7 @@ jobs:
         id: node-version
         run: |
           NODE_VERSION=$(curl -s https://nodejs.org/dist/index.json | jq -r '[.[] | select(.lts != false)][0].version')
-          echo "node_version=${NODE_VERSION}" >> $GITHUB_OUTPUT
+          echo "version=${NODE_VERSION}" >> $GITHUB_OUTPUT
 
       - name: Update .nvmrc
         run: echo "${{ steps.node-version.outputs.node_version }}" > .nvmrc
@@ -31,7 +31,7 @@ jobs:
       - name: Prepare branch name
         id: branch-name
         run: |
-          BRANCH_NAME="update-nvmrc-${{ steps.node_version.outputs.latest_lts }}"
+          BRANCH_NAME="update-nvmrc-${{ steps.node-version.outputs.version }}"
           echo "branch_name=${BRANCH_NAME}" >>$GITHUB_OUTPUT
 
       - name: Check if branch already exists

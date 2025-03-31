@@ -7,7 +7,7 @@ import { User } from 'lib/types'
 import { getConfig } from 'lib/config'
 import { AuthService } from './auth.service'
 import { AUTH } from './constants'
-import { MailLoginDto, RegisterDto } from './dto'
+import { EmailLoginDto, RegisterDto } from './dto'
 import { RegisterResponse } from './responses'
 import { AuthStrategy } from './types'
 
@@ -23,9 +23,9 @@ export class AuthController {
 
     @Public()
     @Post('login')
-    @UseGuards(AuthGuard(AuthStrategy.Local))
-    async loginWithMail(
-        @Body() dto: MailLoginDto,
+    @UseGuards(AuthGuard(AuthStrategy.Email))
+    async loginWithEmail(
+        @Body() dto: EmailLoginDto,
         @UserDecorator() user: User,
         @DeviceIdDecorator() deviceId: string,
         @Res({ passthrough: true }) res: Response,
