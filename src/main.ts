@@ -1,4 +1,4 @@
-import { ShutdownSignal } from '@nestjs/common'
+import { ShutdownSignal, ValidationPipe } from '@nestjs/common'
 import { NestExpressApplication } from '@nestjs/platform-express'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { NestFactory } from '@nestjs/core'
@@ -36,6 +36,7 @@ const bootstrap = async () => {
     app.useGlobalGuards(new HttpMethodGuard())
     app.useGlobalInterceptors(new ContentTypeInterceptor())
     app.use(json(bodyParserConfig))
+    app.useGlobalPipes(new ValidationPipe())
     app.enableShutdownHooks([ShutdownSignal.SIGINT, ShutdownSignal.SIGTERM])
 
     if (useLogs) {

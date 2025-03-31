@@ -1,12 +1,13 @@
 import { BadRequestException, HttpStatus, Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { JwtService } from '@nestjs/jwt'
+import { randomBytes } from 'node:crypto'
 import { Repository } from 'typeorm'
 import { UserEntity, UserRefreshTokenEntity, UserTypeEntity } from 'database/entities'
 import { TimeIntervalS, UserType } from 'lib/enums'
 import { en_US } from 'lib/locale'
 import { R } from 'lib/utils'
-import { ConfirmRegisterDto, EmailLoginDto, RefreshTokenDto, RegisterDto } from './dto'
+import { ConfirmRegisterDto, EmailLoginDto, ForgotPasswordDto, RefreshTokenDto, RegisterDto, ResetPasswordDto } from './dto'
 import { ErrorResponse } from 'lib/common'
 import { TokenPayload, TokenTypes, UserTokenPayload, UserToSave } from './types'
 import { hashPassword } from './utils'
@@ -197,48 +198,96 @@ export class AuthService {
     }
 
     // note: it should be done by sending email with jwt token
+    async forgotPassword(dto: ForgotPasswordDto) {
+        const { email } = dto
+
+        const user = await this.userRepository.findOne({
+            select: ['userUUID'],
+            where: {
+                email,
+                isActive: true,
+            },
+        })
+
+        if (!user) {
+            // note: when done how it should be done (by sending email), return Promise.resolve()
+            return randomBytes(128).toString('hex')
+        }
+
+        const tokenPayload = {
+            userUUID: user.userUUID,
+        }
+        const tokenOptions = {
+            expiresIn: TimeIntervalS.Hour,
+        }
+
+        const token = this.jwtService.sign(tokenPayload, tokenOptions)
+
+        return token
+    }
+
+    async resetPassword(dto: ResetPasswordDto) {
+        const { token, password } = dto
+
+        const data = await this.jwtService.verifyAsync<UserTokenPayload>(token).catch(() => {
+            const error: ErrorResponse = {
+                code: HttpStatus.BAD_REQUEST,
+                message: T.expiredToken,
+            }
+
+            throw new BadRequestException(error)
+        })
+
+        await this.userRepository.update({ userUUID: data.userUUID, isActive: true }, { password: hashPassword(password) })
+
+        return {
+            message: T.passwordChanged,
+        }
+    }
+
+    // note: it should be done by sending email with jwt token
     private getRegisterToken(userUUID: string) {
-        const payload = {
+        const tokenPayload = {
             userUUID,
         }
-        const options = {
+        const tokenOptions = {
             expiresIn: TimeIntervalS.Day,
         }
 
-        return this.jwtService.sign(payload, options)
+        return this.jwtService.sign(tokenPayload, tokenOptions)
     }
 
     private getAccessToken(user: User) {
         const { userUUID, userType } = user
 
-        const payload = {
+        const tokenPayload = {
             tokenUse: TokenTypes.AccessToken,
             payload: {
                 userType,
             },
         }
-        const options = {
+        const tokenOptions = {
             expiresIn: TimeIntervalS.Day,
             subject: userUUID,
         }
 
-        return this.jwtService.sign(payload, options)
+        return this.jwtService.sign(tokenPayload, tokenOptions)
     }
 
     private async getRefreshToken(user: User, deviceId: string) {
         const { userUUID, userType } = user
 
-        const payload = {
+        const tokenPayload = {
             tokenUse: TokenTypes.RefreshToken,
             payload: {
                 userType,
             },
         }
-        const options = {
+        const tokenOptions = {
             subject: userUUID,
         }
 
-        const refreshToken = this.jwtService.sign(payload, options)
+        const refreshToken = this.jwtService.sign(tokenPayload, tokenOptions)
 
         const userRefreshTokenUUID = await this.userRefreshTokenRepository
             .findOneBy({

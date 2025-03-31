@@ -7,5 +7,6 @@ export const en_US = {
         accountConfirm: 'Your account has been confirmed.',
         invalidTokenUsed: 'Invalid token used. Please contact support.',
         invalidTokenType: 'Token type that You are trying to use is invalid.',
+        passwordChanged: 'Password has been changed.',
     },
 }
