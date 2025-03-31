@@ -5,9 +5,10 @@ import { Repository } from 'typeorm'
 import { UserEntity, UserRefreshTokenEntity, UserTypeEntity } from 'database/entities'
 import { TimeIntervalS, UserType } from 'lib/enums'
 import { en_US } from 'lib/locale'
-import { ConfirmRegisterDto, EmailLoginDto, RegisterDto } from './dto'
+import { R } from 'lib/utils'
+import { ConfirmRegisterDto, EmailLoginDto, RefreshTokenDto, RegisterDto } from './dto'
 import { ErrorResponse } from 'lib/common'
-import { TokenTypes, UserTokenPayload, UserToSave } from './types'
+import { TokenPayload, TokenTypes, UserTokenPayload, UserToSave } from './types'
 import { hashPassword } from './utils'
 import { User } from 'lib/types'
 import { GetUserDao } from './dao'
@@ -59,14 +60,7 @@ export class AuthService {
             throw new BadRequestException(error)
         })
 
-        await this.userRepository.update(
-            {
-                userUUID: data.userUUID,
-            },
-            {
-                isActive: true,
-            },
-        )
+        await this.userRepository.update({ userUUID: data.userUUID }, { isActive: true })
 
         return {
             message: T.accountConfirm,
@@ -148,6 +142,60 @@ export class AuthService {
             })
     }
 
+    async refreshToken(dto: RefreshTokenDto, deviceId: string) {
+        const { refreshToken } = dto
+
+        const tokenPayload = await this.jwtService.verifyAsync<TokenPayload>(refreshToken).catch(() => {
+            const error: ErrorResponse = {
+                code: HttpStatus.BAD_REQUEST,
+                message: T.invalidTokenUsed,
+            }
+
+            throw new BadRequestException(error)
+        })
+
+        const { tokenUse, sub, payload } = tokenPayload
+
+        if (tokenUse !== TokenTypes.RefreshToken) {
+            const error: ErrorResponse = {
+                code: HttpStatus.BAD_REQUEST,
+                message: T.invalidTokenType,
+            }
+
+            throw new BadRequestException(error)
+        }
+
+        const isTokenExists = await this.userRefreshTokenRepository
+            .findOne({
+                select: ['userUUID'],
+                where: {
+                    userUUID: sub,
+                    deviceId,
+                },
+            })
+            .then(Boolean)
+
+        if (!isTokenExists || R.isNil(sub)) {
+            const error: ErrorResponse = {
+                code: HttpStatus.BAD_REQUEST,
+                message: T.invalidTokenUsed,
+            }
+
+            throw new BadRequestException(error)
+        }
+
+        const user = {
+            userUUID: sub,
+            userType: payload.userType,
+        }
+
+        const accessToken = this.getAccessToken(user)
+
+        return {
+            accessToken,
+        }
+    }
+
     // note: it should be done by sending email with jwt token
     private getRegisterToken(userUUID: string) {
         const payload = {
@@ -157,9 +205,7 @@ export class AuthService {
             expiresIn: TimeIntervalS.Day,
         }
 
-        const jwtToken = this.jwtService.sign(payload, options)
-
-        return jwtToken
+        return this.jwtService.sign(payload, options)
     }
 
     private getAccessToken(user: User) {
@@ -171,7 +217,6 @@ export class AuthService {
                 userType,
             },
         }
-
         const options = {
             expiresIn: TimeIntervalS.Day,
             subject: userUUID,
@@ -189,12 +234,12 @@ export class AuthService {
                 userType,
             },
         }
-
-        const refreshToken = this.jwtService.sign(payload, {
+        const options = {
             subject: userUUID,
-        })
+        }
 
-        // get current token for device
+        const refreshToken = this.jwtService.sign(payload, options)
+
         const userRefreshTokenUUID = await this.userRefreshTokenRepository
             .findOneBy({
                 userUUID,
@@ -202,7 +247,6 @@ export class AuthService {
             })
             .then(userToken => userToken?.userRefreshTokenUUID)
 
-        // save new token
         await this.userRefreshTokenRepository.save({
             userRefreshTokenUUID,
             token: refreshToken,

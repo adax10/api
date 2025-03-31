@@ -7,8 +7,8 @@ import { User } from 'lib/types'
 import { getConfig } from 'lib/config'
 import { AuthService } from './auth.service'
 import { AUTH } from './constants'
-import { ConfirmRegisterDto, EmailLoginDto, RegisterDto } from './dto'
-import { ConfirmRegisterResponse, LoginResponse, RegisterResponse } from './responses'
+import { ConfirmRegisterDto, EmailLoginDto, RefreshTokenDto, RegisterDto } from './dto'
+import { ConfirmRegisterResponse, LoginResponse, RefreshTokenResponse, RegisterResponse } from './responses'
 import { AuthStrategy } from './types'
 
 @Controller(AUTH)
@@ -51,5 +51,20 @@ export class AuthController {
         res.cookie(getConfig().authConfig.cookieName, '', { secure: true })
 
         return this.authService.removeTokens(user.userUUID, deviceId)
+    }
+
+    @Public()
+    @Post('refresh-token')
+    async refreshToken(
+        @Body() dto: RefreshTokenDto,
+        @DeviceIdDecorator() deviceId: string,
+        @Res({ passthrough: true }) res: Response,
+    ): Promise<RefreshTokenResponse> {
+        const { accessToken } = await this.authService.refreshToken(dto, deviceId)
+        res.cookie(getConfig().authConfig.cookieName, accessToken, { secure: true })
+
+        return {
+            accessToken,
+        }
     }
 }
