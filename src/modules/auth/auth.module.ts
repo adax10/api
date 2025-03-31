@@ -8,7 +8,7 @@ import { getConfig } from 'lib/config'
 import { AuthService } from './auth.service'
 import { AuthController } from './auth.controller'
 import { GlobalAuthGuard } from './guards'
-import { JwtStrategy, LocalStrategy } from './strategies'
+import { JwtStrategy, EmailStrategy } from './strategies'
 import { AuthStrategy } from './types'
 
 @Module({
@@ -39,7 +39,7 @@ import { AuthStrategy } from './types'
         },
         AuthService,
         JwtStrategy,
-        LocalStrategy,
+        EmailStrategy,
     ],
 })
 export class AuthModule {}

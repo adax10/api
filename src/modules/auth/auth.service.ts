@@ -5,7 +5,7 @@ import { Repository } from 'typeorm'
 import { UserEntity, UserRefreshTokenEntity, UserTypeEntity } from 'database/entities'
 import { TimeIntervalS, UserType } from 'lib/enums'
 import { en_US } from 'lib/locale'
-import { MailLoginDto, RegisterDto } from './dto'
+import { EmailLoginDto, RegisterDto } from './dto'
 import { ErrorResponse } from 'lib/common'
 import { TokenTypes, UserToSave } from './types'
 import { hashPassword } from './utils'
@@ -44,7 +44,7 @@ export class AuthService {
         }
     }
 
-    async loginWithMail(dto: MailLoginDto) {
+    async loginWithEmail(dto: EmailLoginDto) {
         const { email, password } = dto
 
         const user = await this.userRepository

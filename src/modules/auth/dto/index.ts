@@ -1,2 +1,2 @@
 export { RegisterDto } from './register.dto'
-export { MailLoginDto } from './mail-login.dto'
+export { EmailLoginDto } from './email-login.dto'
