@@ -4,3 +4,7 @@ export type UserToSave = {
     password: string
     userTypeUUID: string
 }
+
+export type UserTokenPayload = {
+    userUUID: string
+}

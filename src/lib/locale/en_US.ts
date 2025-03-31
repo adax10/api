@@ -3,5 +3,7 @@ export const en_US = {
     auth: {
         emailAlreadyUsed: 'Something went wrong. Please check the given data',
         invalidCredentials: 'Incorrect email or password',
+        expiredToken: 'Your session has expired.',
+        accountConfirm: 'Your account has been confirmed.',
     },
 }

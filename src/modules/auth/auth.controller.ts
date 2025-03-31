@@ -7,8 +7,8 @@ import { User } from 'lib/types'
 import { getConfig } from 'lib/config'
 import { AuthService } from './auth.service'
 import { AUTH } from './constants'
-import { EmailLoginDto, RegisterDto } from './dto'
-import { RegisterResponse } from './responses'
+import { ConfirmRegisterDto, EmailLoginDto, RegisterDto } from './dto'
+import { ConfirmRegisterResponse, LoginResponse, RegisterResponse } from './responses'
 import { AuthStrategy } from './types'
 
 @Controller(AUTH)
@@ -22,6 +22,12 @@ export class AuthController {
     }
 
     @Public()
+    @Post('confirm-register')
+    confirmRegister(@Body() dto: ConfirmRegisterDto): Promise<ConfirmRegisterResponse> {
+        return this.authService.confirmRegister(dto)
+    }
+
+    @Public()
     @Post('login')
     @UseGuards(AuthGuard(AuthStrategy.Email))
     async loginWithEmail(
@@ -29,7 +35,7 @@ export class AuthController {
         @UserDecorator() user: User,
         @DeviceIdDecorator() deviceId: string,
         @Res({ passthrough: true }) res: Response,
-    ) {
+    ): Promise<LoginResponse> {
         const { accessToken, refreshToken } = await this.authService.getTokens(user, deviceId)
         res.cookie(getConfig().authConfig.cookieName, accessToken, { secure: true })
 
