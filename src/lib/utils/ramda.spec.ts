@@ -1,4 +1,4 @@
-import { hasElements, hasKeys, isDefined, clearObject, all, notNil } from './ramda'
+import { hasElements, hasKeys, isDefined, clearObject, all } from './ramda'
 
 describe('ramda utils', () => {
     describe('hasElements', () => {
@@ -71,30 +71,6 @@ describe('ramda utils', () => {
             const arg1 = undefined
 
             expect(isDefined(arg1)).toBeFalsy()
-        })
-    })
-
-    describe('notNil', () => {
-        it('should return true if argument is defined', () => {
-            const arg1 = 1
-            const arg2 = ''
-            const arg3 = {}
-            // @ts-expect-error - empty array is expected here
-            const arg4 = []
-
-            expect(notNil(arg1)).toBeTruthy()
-            expect(notNil(arg2)).toBeTruthy()
-            expect(notNil(arg3)).toBeTruthy()
-            // @ts-expect-error - empty array is expected here
-            expect(notNil(arg4)).toBeTruthy()
-        })
-
-        it('should return false if argument is nil', () => {
-            const arg1 = null
-            const arg2 = undefined
-
-            expect(notNil(arg1)).toBeFalsy()
-            expect(notNil(arg2)).toBeFalsy()
         })
     })
 
