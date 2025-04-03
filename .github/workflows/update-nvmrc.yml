@@ -26,7 +26,7 @@ jobs:
           echo "version=${NODE_VERSION}" >> $GITHUB_OUTPUT
 
       - name: Update .nvmrc
-        run: echo "${{ steps.node-version.outputs.node_version }}" > .nvmrc
+        run: echo "${{ steps.node-version.outputs.version }}" > .nvmrc
 
       - name: Prepare branch name
         id: branch-name
