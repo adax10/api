@@ -33,7 +33,7 @@ jobs:
         run: echo "version=$(cat .nvmrc | sed 's/v//')" >> $GITHUB_OUTPUT
 
       - name: Build Docker image
-        uses: docker/build-push-action@v6.16.0
+        uses: docker/build-push-action@v6.18.0
         with:
           context: .
           push: false
