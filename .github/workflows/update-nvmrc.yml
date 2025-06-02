@@ -2,7 +2,7 @@ name: Update .nvmrc to latest LTS version
 
 on:
   schedule:
-    - cron: '0 12 1 * *'
+    - cron: "0 12 1 * *"
 
   workflow_dispatch:
 
@@ -56,7 +56,7 @@ jobs:
           if ! git diff --exit-code .nvmrc; then
             echo "nvmrc_changed=true" >> $GITHUB_OUTPUT
             git add .nvmrc
-            git commit -m "build(node): update .nvmrc to Node.js ${{ steps.node-version.outputs.latest_lts }}"
+            git commit -m "build(node): update .nvmrc to Node.js ${{ steps.node-version.outputs.version }}"
             git push --set-upstream https://github-actions:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} $BRANCH_NAME
           else
             echo "nvmrc_changed=false" >> $GITHUB_OUTPUT
@@ -69,8 +69,8 @@ jobs:
           gh pr create \
             -B main \
             -H ${{ steps.branch-name.outputs.branch_name }} \
-            --title "build(node): update .nvmrc to Node.js ${{ steps.node-version.outputs.latest_lts  }}" \
-            --body "This PR updates the .nvmrc file to the latest Node.js LTS version: **${{ steps.node-version.outputs.LATEST_LTS  }}**." \
+            --title "build(node): update .nvmrc to Node.js ${{ steps.node-version.outputs.version  }}" \
+            --body "This PR updates the .nvmrc file to the latest Node.js LTS version: **${{ steps.node-version.outputs.version  }}**." \
             --label "dependencies"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
