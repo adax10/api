@@ -64,7 +64,7 @@ jobs:
 
       - name: Use Node.js
         if: ${{ env.ENVIRONMENT == 'local' }}
-        uses: actions/setup-node@v4.4.0
+        uses: actions/setup-node@v5.0.0
         with:
           node-version-file: '.nvmrc'
 
